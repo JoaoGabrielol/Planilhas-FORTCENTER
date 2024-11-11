@@ -45,7 +45,7 @@ headers = {
 # Usando o ID da biblioteca de documentos correta
 drive_id = env("drive_id")
 file_paths = {
-    "Planilha_de_custo.xlsx": "/PLANILHA%20DE%20CUSTO%202024%20(2).xlsx",
+    "PLANILHA_DE_CUSTO.xlsx": "/PLANILHA%20DE%20CUSTO%202024%20(2).xlsx",
     "Recebimentos_Caixa.xlsx": "/Recebimentos%20Caixa%20(1).xlsx"
 }
 
