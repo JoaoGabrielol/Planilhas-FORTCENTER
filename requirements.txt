@@ -5,3 +5,4 @@ plotly
 unidecode
 requests
 django-environ
+openpyxl
