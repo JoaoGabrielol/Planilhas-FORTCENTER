@@ -8,7 +8,7 @@ import plotly.express as px
 from datetime import datetime, timedelta
 from io import BytesIO
 import environ
-
+from calendar import monthrange 
 # Autenticação e download dos arquivos
 env = environ.Env()
 environ.Env().read_env()
@@ -129,23 +129,50 @@ st.markdown('<div class="main-title">Análise Financeira de Despesas</div>', uns
 # Barra lateral para filtros
 st.sidebar.title("Filtros")
 st.sidebar.subheader("Filtrar por Período")
-opcoes_periodo = ["Último mês", "Últimos 2 meses", "Últimos 3 meses", "Últimos 6 meses", "Último ano", "Todos"]
+opcoes_periodo = [
+    "Mês atual", "Mês passado", "Últimos 30 dias", "Semana atual", "Semana passada",
+    "Últimos 3 meses até agora", "Ano atual", "Ano passado", "Hoje", "Tempo todo (Interno)"
+]
 periodo_selecionado = st.sidebar.selectbox("Selecione o período:", opcoes_periodo)
 
 # Lógica para intervalo de datas
 data_mais_recente = planilhas_combinadas['Data'].max()
 data_inicio = {
-    "Último mês": data_mais_recente - timedelta(days=30),
-    "Últimos 2 meses": data_mais_recente - timedelta(days=60),
-    "Últimos 3 meses": data_mais_recente - timedelta(days=90),
-    "Últimos 6 meses": data_mais_recente - timedelta(days=180),
-    "Último ano": data_mais_recente - timedelta(days=365),
-    "Todos": planilhas_combinadas['Data'].min()
-}.get(periodo_selecionado, planilhas_combinadas['Data'].min())
+    "Mês atual": datetime(data_mais_recente.year, data_mais_recente.month, 1),
+    "Mês passado": None,
+    "Últimos 30 dias": data_mais_recente - timedelta(days=30),
+    "Semana atual": data_mais_recente - timedelta(days=data_mais_recente.weekday()),
+    "Semana passada": None,
+    "Últimos 3 meses até agora": data_mais_recente - timedelta(days=90),
+    "Ano atual": datetime(data_mais_recente.year, 1, 1),
+    "Ano passado": datetime(data_mais_recente.year - 1, 1, 1),
+    "Hoje": data_mais_recente,
+    "Tempo todo (Interno)": planilhas_combinadas['Data'].min()
+}
 
-filtro_data = planilhas_combinadas[(planilhas_combinadas['Data'] >= data_inicio) & 
-                                   (planilhas_combinadas['Data'] <= data_mais_recente)].sort_values(by='Data', ascending=False)
+# Ajustar a data final para o mês passado
+if periodo_selecionado == "Mês passado":
+    ano_mes_passado = data_mais_recente.year if data_mais_recente.month > 1 else data_mais_recente.year - 1
+    mes_mes_passado = data_mais_recente.month - 1 if data_mais_recente.month > 1 else 12
+    ultimo_dia_mes_passado = monthrange(ano_mes_passado, mes_mes_passado)[1]
+    
+    data_inicio["Mês passado"] = datetime(ano_mes_passado, mes_mes_passado, 1)
+    data_mais_recente = datetime(ano_mes_passado, mes_mes_passado, ultimo_dia_mes_passado)
 
+    # Ajustar a data de início e fim para "Semana passada"
+if periodo_selecionado == "Semana passada":
+    inicio_semana_atual = data_mais_recente - timedelta(days=data_mais_recente.weekday())
+    fim_semana_passada = inicio_semana_atual - timedelta(days=1)
+    inicio_semana_passada = fim_semana_passada - timedelta(days=6)
+    
+    data_inicio["Semana passada"] = inicio_semana_passada
+    data_mais_recente = fim_semana_passada
+
+# Aplicar o filtro de datas
+filtro_data = planilhas_combinadas[
+    (planilhas_combinadas['Data'] >= data_inicio[periodo_selecionado]) &
+    (planilhas_combinadas['Data'] <= data_mais_recente)
+]
 # Ordenar os dados filtrados por data de forma decrescente
 filtro_data = filtro_data.sort_values(by='Data', ascending=False)
 
