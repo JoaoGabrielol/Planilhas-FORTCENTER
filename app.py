@@ -110,6 +110,8 @@ planilhas_combinadas = planilhas_combinadas.dropna(how='all')
 # Convertendo a coluna de data para tipo datetime e removendo NaN
 planilhas_combinadas['Data'] = pd.to_datetime(planilhas_combinadas['Data'], errors='coerce')
 planilhas_combinadas.dropna(subset=['Data', 'Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Valor R$'], inplace=True)
+df['data'] = df['data'].dt.strftime('%d/%m/%Y')
+
 
 # Configurar o layout do dashboard
 st.set_page_config(layout="wide", page_title="Análise de Despesas", page_icon="📊")
