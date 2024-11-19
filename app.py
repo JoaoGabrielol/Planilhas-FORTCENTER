@@ -110,8 +110,6 @@ planilhas_combinadas = planilhas_combinadas.dropna(how='all')
 # Convertendo a coluna de data para tipo datetime e removendo NaN
 planilhas_combinadas['Data'] = pd.to_datetime(planilhas_combinadas['Data'], errors='coerce')
 planilhas_combinadas.dropna(subset=['Data', 'Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Valor R$'], inplace=True)
-planilhas_combinadas['Data'] = planilhas_combinadas['Data'].dt.strftime('%d/%m/%Y')
-
 
 # Configurar o layout do dashboard
 st.set_page_config(layout="wide", page_title="Análise de Despesas", page_icon="📊")
@@ -244,7 +242,7 @@ filtro_final = filtro_usuario[(filtro_usuario['Valor R$'] >= valor_min) & (filtr
 
 # Remover o índice da tabela, formatar a coluna de data e substituir valores vazios
 filtro_final_formatado = filtro_final.copy()
-filtro_final_formatado['Data'] = filtro_final_formatado['Data'].dt.strftime('%d-%m-%Y')  # Formatar data como "24-10-2024"
+filtro_final_formatado['Data'] = filtro_final_formatado['Data'].dt.strftime('%d/%m/%Y')  # Formatar data como "24-10-2024"
 
 # Substituir valores vazios por um valor mais amigável (ex: "Não informado")
 filtro_final_formatado.fillna("Não informado", inplace=True)
