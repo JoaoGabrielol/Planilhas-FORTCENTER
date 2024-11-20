@@ -176,6 +176,9 @@ filtro_data = planilhas_combinadas[
 # Ordenar os dados filtrados por data de forma decrescente
 filtro_data = filtro_data.sort_values(by='Data', ascending=False)
 
+# Remover "Corporativo" da coluna "Usuário"
+filtro_final_sem_corporativo = filtro_data[filtro_data['Usuário'] != "CORPORATIVO"]
+
 # Filtro por Grupo Despesas
 if 'grupo_despesas' not in st.session_state:
     st.session_state['grupo_despesas'] = []
@@ -281,7 +284,7 @@ st.download_button(
 
 # Gráfico de despesas por usuário padronizado
 st.markdown("## Gráfico de Despesas por Usuário")
-despesas_por_usuario = filtro_final.groupby('Usuário')['Valor R$'].sum().reset_index()
+despesas_por_usuario = filtro_final_sem_corporativo.groupby('Usuário')['Valor R$'].sum().reset_index()
 fig1 = px.bar(despesas_por_usuario, x='Usuário', y='Valor R$', title='Despesas por Usuário', 
               color='Usuário', color_continuous_scale=px.colors.sequential.Blues, template="plotly_white")
 st.plotly_chart(fig1, use_container_width=True)
