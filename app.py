@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import environ
 from calendar import monthrange 
-# Autenticação e download dos arquivos
+
 env = environ.Env()
 environ.Env().read_env()
 
@@ -19,19 +19,16 @@ tenant_id = env("tenant_id")
 msal_authority = f"https://login.microsoftonline.com/{tenant_id}"
 msal_scope = ["https://graph.microsoft.com/.default"]
 
-# Configurando a aplicação MSAL
 msal_app = ConfidentialClientApplication(
     client_id=client_id,
     client_credential=client_secret,
     authority=msal_authority,
 )
 
-# Tentando adquirir o token
 result = msal_app.acquire_token_silent(scopes=msal_scope, account=None)
 if not result:
     result = msal_app.acquire_token_for_client(scopes=msal_scope)
 
-# Verifica se o token foi adquirido com sucesso
 if "access_token" in result:
     access_token = result["access_token"]
 else:
@@ -42,7 +39,6 @@ headers = {
     "Content-Type": "application/json",
 }
 
-# Usando o ID da biblioteca de documentos correta
 drive_id = env("drive_id")
 file_paths = {
     "PLANILHA_DE_CUSTO.xlsx": "/PLANILHA%20DE%20CUSTO%202024%20(2).xlsx",
@@ -62,11 +58,9 @@ def download_file(file_name, file_path):
 for file_name, path in file_paths.items():
     download_file(file_name, path)
 
-# Carregar as planilhas específicas "LANÇAMENTO DESPESAS"
 planilha_1 = pd.read_excel('Recebimentos_Caixa.xlsx', sheet_name='LANÇAMENTO DESPESAS', skiprows=3)
 planilha_2 = pd.read_excel('PLANILHA_DE_CUSTO.xlsx', sheet_name='LANÇAMENTO DESPESAS', skiprows=3)
 
-# Ajustar as colunas dinamicamente
 colunas = ['Data', 'Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Descrição Despesa', 'Valor R$', 'Observação',
            'Coluna8', 'Coluna9', 'Coluna10', 'Coluna11', 'Coluna12', 'Mês', 'Coluna Extra']
 if len(planilha_1.columns) == 14:
@@ -74,47 +68,33 @@ if len(planilha_1.columns) == 14:
 if len(planilha_2.columns) == 14:
     planilha_2.columns = colunas
 
-# Remover colunas extras 
 colunas_a_remover = ['Coluna8', 'Coluna9', 'Coluna10', 'Coluna11', 'Coluna12', 'Mês', 'Coluna Extra']
 planilha_1 = planilha_1.drop(columns=colunas_a_remover, errors='ignore')
 planilha_2 = planilha_2.drop(columns=colunas_a_remover, errors='ignore')
 
-# Concatenar as planilhas em uma única tabela
 planilhas_combinadas = pd.concat([planilha_1, planilha_2], ignore_index=True)
 
-# Funções de soma e média
 def soma_por_grupo_despesa(planilha):
     # Garantir que 'Valor R$' é numérico
     planilha['Valor R$'] = pd.to_numeric(planilha['Valor R$'], errors='coerce')
     return planilha.groupby('Grupo Despesas')['Valor R$'].sum().reset_index()
 
-# Padronizar nomes de usuários
 def padronizar_nome_usuario(planilha):
     planilha['Usuário'] = planilha['Usuário'].apply(lambda x: unidecode(str(x)).upper())
     return planilha
 
 planilhas_combinadas = padronizar_nome_usuario(planilhas_combinadas)
 
-# Listar colunas de texto para preencher NaNs com "Não informado"
+
 colunas_texto = ['Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Descrição Despesa', 'Observação']
-
-# Preencher NaNs nas colunas de texto
 planilhas_combinadas[colunas_texto] = planilhas_combinadas[colunas_texto].fillna("Não informado")
-
-# Certificar-se de que 'Valor R$' é numérico
 planilhas_combinadas['Valor R$'] = pd.to_numeric(planilhas_combinadas['Valor R$'], errors='coerce')
-
-# Remover apenas linhas completamente vazias
 planilhas_combinadas = planilhas_combinadas.dropna(how='all')
-
-# Convertendo a coluna de data para tipo datetime e removendo NaN
 planilhas_combinadas['Data'] = pd.to_datetime(planilhas_combinadas['Data'], errors='coerce')
 planilhas_combinadas.dropna(subset=['Data', 'Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Valor R$'], inplace=True)
 
-# Configurar o layout do dashboard
 st.set_page_config(layout="wide", page_title="Análise de Despesas", page_icon="📊")
 
-# Estilos e título do dashboard
 st.markdown(
     """
     <style>
@@ -126,7 +106,6 @@ st.markdown(
 )
 st.markdown('<div class="main-title">Análise Financeira de Despesas</div>', unsafe_allow_html=True)
 
-# Barra lateral para filtros
 st.sidebar.title("Filtros")
 st.sidebar.subheader("Filtrar por Período")
 opcoes_periodo = [
@@ -135,7 +114,6 @@ opcoes_periodo = [
 ]
 periodo_selecionado = st.sidebar.selectbox("Selecione o período:", opcoes_periodo)
 
-# Lógica para intervalo de datas
 data_mais_recente = planilhas_combinadas['Data'].max()
 data_inicio = {
     "Mês atual": datetime(data_mais_recente.year, data_mais_recente.month, 1),
@@ -150,7 +128,6 @@ data_inicio = {
     "Tempo todo (Interno)": planilhas_combinadas['Data'].min()
 }
 
-# Ajustar a data final para o mês passado
 if periodo_selecionado == "Mês passado":
     ano_mes_passado = data_mais_recente.year if data_mais_recente.month > 1 else data_mais_recente.year - 1
     mes_mes_passado = data_mais_recente.month - 1 if data_mais_recente.month > 1 else 12
@@ -159,7 +136,6 @@ if periodo_selecionado == "Mês passado":
     data_inicio["Mês passado"] = datetime(ano_mes_passado, mes_mes_passado, 1)
     data_mais_recente = datetime(ano_mes_passado, mes_mes_passado, ultimo_dia_mes_passado)
 
-    # Ajustar a data de início e fim para "Semana passada"
 if periodo_selecionado == "Semana passada":
     inicio_semana_atual = data_mais_recente - timedelta(days=data_mais_recente.weekday())
     fim_semana_passada = inicio_semana_atual - timedelta(days=1)
@@ -168,18 +144,15 @@ if periodo_selecionado == "Semana passada":
     data_inicio["Semana passada"] = inicio_semana_passada
     data_mais_recente = fim_semana_passada
 
-# Aplicar o filtro de datas
 filtro_data = planilhas_combinadas[
     (planilhas_combinadas['Data'] >= data_inicio[periodo_selecionado]) &
     (planilhas_combinadas['Data'] <= data_mais_recente)
 ]
-# Ordenar os dados filtrados por data de forma decrescente
-filtro_data = filtro_data.sort_values(by='Data', ascending=False)
 
-# Remover "Corporativo" da coluna "Usuário"
+filtro_data = filtro_data.sort_values(by='Data', ascending=False)
 filtro_final_sem_corporativo = filtro_data[filtro_data['Usuário'] != "CORPORATIVO"]
 
-# Filtro por Grupo Despesas
+#Filtro do grupo de despesa
 if 'grupo_despesas' not in st.session_state:
     st.session_state['grupo_despesas'] = []
 
@@ -191,13 +164,12 @@ grupos_despesas = st.sidebar.multiselect(
 
 st.session_state['grupo_despesas'] = grupos_despesas
 
-# Aplicar filtro se houver seleção
 if grupos_despesas:
     filtro_grupo = filtro_data[filtro_data['Grupo Despesas'].isin(grupos_despesas)]
 else:
     filtro_grupo = filtro_data
 
-# Filtro por Tipo de Despesas
+# Filtro do tipo de despesa
 if 'tipo_despesas' not in st.session_state:
     st.session_state['tipo_despesas'] = []
 
@@ -209,13 +181,12 @@ tipos_despesas = st.sidebar.multiselect(
 
 st.session_state['tipo_despesas'] = tipos_despesas
 
-# Aplicar filtro se houver seleção
 if tipos_despesas:
     filtro_tipo = filtro_grupo[filtro_grupo['Tipo Despesas'].isin(tipos_despesas)]
 else:
     filtro_tipo = filtro_grupo
 
-# Filtro por Usuário
+# Filtro de usuário
 if 'usuarios' not in st.session_state:
     st.session_state['usuarios'] = []
 
@@ -227,13 +198,12 @@ usuarios = st.sidebar.multiselect(
 
 st.session_state['usuarios'] = usuarios
 
-# Aplicar filtro se houver seleção
 if usuarios:
     filtro_usuario = filtro_tipo[filtro_tipo['Usuário'].isin(usuarios)]
 else:
     filtro_usuario = filtro_tipo
 
-# Filtro por Intervalo de Valores
+# Filtro de um intervalo de valor
 valor_min, valor_max = st.sidebar.slider(
     'Selecione o intervalo de valores (R$):',
     min_value=0,
@@ -243,18 +213,14 @@ valor_min, valor_max = st.sidebar.slider(
 
 filtro_final = filtro_usuario[(filtro_usuario['Valor R$'] >= valor_min) & (filtro_usuario['Valor R$'] <= valor_max)]
 
-# Remover o índice da tabela, formatar a coluna de data e substituir valores vazios
 filtro_final_formatado = filtro_final.copy()
-filtro_final_formatado['Data'] = filtro_final_formatado['Data'].dt.strftime('%d/%m/%Y')  # Formatar data como "24-10-2024"
+filtro_final_formatado['Data'] = filtro_final_formatado['Data'].dt.strftime('%d/%m/%Y')
 
-# Substituir valores vazios por um valor mais amigável (ex: "Não informado")
 filtro_final_formatado.fillna("Não informado", inplace=True)
 
-# Exibir a tabela sem o índice
 st.markdown('<div class="table-title">Dados Filtrados</div>', unsafe_allow_html=True)
 st.dataframe(filtro_final_formatado.rename(columns={"Usuário Padronizado": "Usuário"}).reset_index(drop=True).style.format({"Valor R$": "R${:,.2f}"}), use_container_width=True)
 
-# Divisão em colunas para exibir métricas principais
 st.markdown("## Métricas de Despesas")
 col1, col2, col3 = st.columns(3)
 total_despesas = filtro_final['Valor R$'].sum()
@@ -282,14 +248,12 @@ st.download_button(
     mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 )
 
-# Gráfico de despesas por usuário padronizado
 st.markdown("## Gráfico de Despesas por Usuário")
 despesas_por_usuario = filtro_final_sem_corporativo.groupby('Usuário')['Valor R$'].sum().reset_index()
 fig1 = px.bar(despesas_por_usuario, x='Usuário', y='Valor R$', title='Despesas por Usuário', 
               color='Usuário', color_continuous_scale=px.colors.sequential.Blues, template="plotly_white")
 st.plotly_chart(fig1, use_container_width=True)
 
-# Soma por grupo de despesa usando o DataFrame filtrado
 soma_grupo = soma_por_grupo_despesa(filtro_final)
 
 if not soma_grupo.empty:
@@ -303,4 +267,3 @@ if st.checkbox("Mostrar detalhes por Tipo de Despesa"):
     despesas_tipo = filtro_final.groupby('Tipo Despesas')['Valor R$'].sum().reset_index()
     fig3 = px.bar(despesas_tipo, x='Tipo Despesas', y='Valor R$', title='Despesas por Tipo')
     st.plotly_chart(fig3, use_container_width=True)
-    
