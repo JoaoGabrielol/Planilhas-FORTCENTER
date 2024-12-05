@@ -75,7 +75,6 @@ planilha_2 = planilha_2.drop(columns=colunas_a_remover, errors='ignore')
 planilhas_combinadas = pd.concat([planilha_1, planilha_2], ignore_index=True)
 
 def soma_por_grupo_despesa(planilha):
-    # Garantir que 'Valor R$' é numérico
     planilha['Valor R$'] = pd.to_numeric(planilha['Valor R$'], errors='coerce')
     return planilha.groupby('Grupo Despesas')['Valor R$'].sum().reset_index()
 
@@ -84,7 +83,6 @@ def padronizar_nome_usuario(planilha):
     return planilha
 
 planilhas_combinadas = padronizar_nome_usuario(planilhas_combinadas)
-
 
 colunas_texto = ['Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Descrição Despesa', 'Observação']
 planilhas_combinadas[colunas_texto] = planilhas_combinadas[colunas_texto].fillna("Não informado")
@@ -203,12 +201,11 @@ if usuarios:
 else:
     filtro_usuario = filtro_tipo
 
-# Filtro de um intervalo de valor
 valor_min, valor_max = st.sidebar.slider(
     'Selecione o intervalo de valores (R$):',
-    min_value=0,
-    max_value=int(filtro_usuario['Valor R$'].max()),
-    value=(0, int(filtro_usuario['Valor R$'].max()))
+    min_value=int(filtro_usuario['Valor R$'].min()),  # Permite valores negativos
+    max_value=int(filtro_usuario['Valor R$'].max()),  # Máximo permanece o maior valor da coluna
+    value=(int(filtro_usuario['Valor R$'].min()), int(filtro_usuario['Valor R$'].max()))  # Intervalo padrão: todos os valores disponíveis
 )
 
 filtro_final = filtro_usuario[(filtro_usuario['Valor R$'] >= valor_min) & (filtro_usuario['Valor R$'] <= valor_max)]
