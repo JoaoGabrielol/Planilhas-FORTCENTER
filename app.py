@@ -93,7 +93,7 @@ planilhas_combinadas = planilhas_combinadas.dropna(how='all')
 planilhas_combinadas['Data'] = pd.to_datetime(planilhas_combinadas['Data'], errors='coerce')
 planilhas_combinadas.dropna(subset=['Data', 'Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Valor R$'], inplace=True)
 
-st.set_page_config(layout="wide", page_title="Análise de Despesas", page_icon="📊")
+st.set_page_config(layout="centered", page_title="Análise de Despesas", page_icon="📊")
 
 st.markdown(
     """
