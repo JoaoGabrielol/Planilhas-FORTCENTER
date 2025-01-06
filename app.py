@@ -203,9 +203,9 @@ else:
 
 valor_min, valor_max = st.sidebar.slider(
     'Selecione o intervalo de valores (R$):',
-    min_value=int(filtro_usuario['Valor R$'].min()),  # Permite valores negativos
-    max_value=int(filtro_usuario['Valor R$'].max()),  # Máximo permanece o maior valor da coluna
-    value=(int(filtro_usuario['Valor R$'].min()), int(filtro_usuario['Valor R$'].max()))  # Intervalo padrão: todos os valores disponíveis
+    min_value=float(filtro_usuario['Valor R$'].min()),  # Permite valores negativos
+    max_value=float(filtro_usuario['Valor R$'].max()),  # Máximo permanece o maior valor da coluna
+    value=(float(filtro_usuario['Valor R$'].min()), float(filtro_usuario['Valor R$'].max()))  # Intervalo padrão: todos os valores disponíveis
 )
 
 filtro_final = filtro_usuario[(filtro_usuario['Valor R$'] >= valor_min) & (filtro_usuario['Valor R$'] <= valor_max)]
