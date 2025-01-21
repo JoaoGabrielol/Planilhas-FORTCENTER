@@ -59,7 +59,7 @@ for file_name, path in file_paths.items():
     download_file(file_name, path)
 
 planilha_1 = pd.read_excel('Recebimentos_Caixa.xlsx', sheet_name='LANÇAMENTO DESPESAS', skiprows=3)
-planilha_2 = pd.read_excel('PLANILHA_DE_CUSTO.xlsx', sheet_name='LANÇAMENTO DESPESAS', skiprows=3)
+planilha_2 = pd.read_excel('PLANILHA_DE_CUSTO_2025.xlsx', sheet_name='LANÇAMENTO DESPESAS', skiprows=3)
 
 colunas = ['Data', 'Grupo Despesas', 'Tipo Despesas', 'Usuário', 'Descrição Despesa', 'Valor R$', 'Observação',
            'Coluna8', 'Coluna9', 'Coluna10', 'Coluna11', 'Coluna12', 'Mês', 'Coluna Extra']
