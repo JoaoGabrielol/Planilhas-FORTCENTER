@@ -41,7 +41,7 @@ headers = {
 
 drive_id = env("drive_id")
 file_paths = {
-    "PLANILHA_DE_CUSTO.xlsx": "/PLANILHA%20DE%20CUSTO%202024%20(2).xlsx",
+    "PLANILHA_DE_CUSTO_2025.xlsx": "/PLANILHA%20DE%20CUSTO%202025.xlsx",
     "Recebimentos_Caixa.xlsx": "/Recebimentos%20Caixa%20(1).xlsx"
 }
 
