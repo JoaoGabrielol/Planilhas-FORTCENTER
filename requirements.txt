@@ -1,7 +1,7 @@
 streamlit
 msal
 pandas
-plotly
+plotly_express
 unidecode
 requests
 django-environ
