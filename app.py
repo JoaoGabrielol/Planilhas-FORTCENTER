@@ -71,19 +71,6 @@ receita_liquida = vendas_total - receita_balcao_total
 transacoes_liquidas = quantidade_transacoes - quantidade_balcao_transacoes
 ticket_medio_liquido = receita_liquida / transacoes_liquidas if transacoes_liquidas > 0 else 0
 
-# 🔸 Exibir Métricas Líquidas SÓ SE forem diferentes das métricas principais
-# (evita duplicidade se não há vendas balcão ou tudo igual)
-if (
-    (receita_liquida != vendas_total)
-    or (transacoes_liquidas != quantidade_transacoes)
-    or (ticket_medio_liquido != receita_media)
-) and (transacoes_liquidas > 0):
-    st.markdown("## Métricas de Receita (Excluindo Vendas Balcão)")
-    col_liquido1, col_liquido2, col_liquido3 = st.columns(3)
-    col_liquido1.metric("Receita Líquida", f"R$ {receita_liquida:,.2f}", delta_color="normal")
-    col_liquido2.metric("Transações Líquidas", transacoes_liquidas)
-    col_liquido3.metric("Ticket Médio Modificado", f"R$ {ticket_medio_liquido:,.2f}")
-
 opcoes_graficos = [
     "Ticket Médio por Técnico",
     "Receita Total por Técnico",
