@@ -20,13 +20,6 @@ token = autenticar_msal()
 headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 df = processar_arquivos(arquivos, drive_id, headers)
-
-df_venda_balcao = pd.read_excel("Venda_Balcao.xlsx", header=0, usecols=['Dt. Neg.', 'Vlr. Nota'])
-df_venda_balcao.rename(columns={'Dt. Neg.': 'DATA', 'Vlr. Nota': 'VALOR R$'}, inplace=True)
-df["ORIGEM"] = "Outras Planilhas"
-df_venda_balcao["ORIGEM"] = "Venda_Balcao"
-
-df = pd.concat([df, df_venda_balcao], ignore_index=True)
 df_balcao = df[df['ORIGEM'] == 'Venda_Balcao']
 
 df = padronizar_e_limpar(df)
