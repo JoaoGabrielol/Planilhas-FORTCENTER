@@ -14,6 +14,11 @@ def autenticar_msal():
     msal_authority = f"https://login.microsoftonline.com/{tenant_id}"
     msal_scope = ["https://graph.microsoft.com/.default"]
 
+    print("client_id:", client_id)
+    print("tenant_id:", tenant_id)
+    print("client_secret:", client_secret[:6] + "...")
+
+
     msal_app = ConfidentialClientApplication(
         client_id=client_id,
         client_credential=client_secret,
@@ -27,7 +32,9 @@ def autenticar_msal():
     if "access_token" in result:
         return result["access_token"]
     else:
+        print("Erro na autenticação:", json.dumps(result, indent=2))
         raise Exception("Nenhum token de acesso encontrado")
+
 
 def baixar_arquivo(drive_id, file_name, file_path, headers):
     url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:{file_path}:/content"
@@ -54,5 +61,6 @@ def processar_arquivos(arquivos, drive_id, headers):
     for arquivo in arquivos:
         baixar_arquivo(drive_id, arquivo["nome"], arquivo["caminho"], headers)
         df = carregar_planilha(arquivo["nome"], arquivo["aba"], arquivo["linhas_pular"])
+        df["ORIGEM"] = arquivo["nome"].replace(".xlsx", "")
         dfs.append(df)
     return pd.concat(dfs, ignore_index=True)
